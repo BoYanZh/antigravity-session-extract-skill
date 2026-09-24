@@ -49,7 +49,9 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 
 def normalized_path(value: str | Path) -> str:
-    path = Path(value).expanduser().resolve(strict=False)
+    path = Path(value).expanduser()
+    if not path.is_absolute():
+        path = Path.cwd() / path
     return PATH_SEPARATORS.sub("/", os.path.normcase(str(path))).rstrip("/").casefold()
 
 
@@ -403,7 +405,9 @@ def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     try:
         root = args.root.expanduser().resolve(strict=False)
-        project = args.project.expanduser().resolve(strict=False)
+        project = args.project.expanduser()
+        if not project.is_absolute():
+            project = Path.cwd() / project
         if args.list:
             result: Any = list_sessions(root, project)
             content = json.dumps(result, ensure_ascii=False, indent=2) + "\n"

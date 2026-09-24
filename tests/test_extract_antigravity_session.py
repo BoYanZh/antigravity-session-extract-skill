@@ -5,6 +5,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 SCRIPT = (
     Path(__file__).parents[1]
@@ -146,6 +147,12 @@ class ExtractAntigravitySessionTest(unittest.TestCase):
         self.assertEqual(["conv_good", "conv_noise"], [session["id"] for session in sessions])
         self.assertEqual("nonempty", sessions[0]["transcript_status"])
         self.assertEqual("fix session loading", sessions[0]["title"])
+
+    def test_windows_python_313_path_alias_does_not_change_project_key(self):
+        with mock.patch.object(Path, "resolve", side_effect=AssertionError("must stay lexical")):
+            key = MODULE.normalized_path(self.project)
+
+        self.assertTrue(key.endswith("/project"), key)
 
     def test_extract_cleans_and_deduplicates_prompts_and_keeps_tools(self):
         exit_code, stdout, stderr = self.run_cli(
